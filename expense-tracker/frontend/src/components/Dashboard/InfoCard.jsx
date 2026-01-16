@@ -3,63 +3,50 @@ import { formatCurrency } from '../../utils/helper';
 const InfoCard = ({ title, value, icon, color = 'indigo', trend, trendValue }) => {
   const colorClasses = {
     indigo: {
-      bg: 'from-indigo-500/20 to-indigo-600/10',
+      bg: 'bg-indigo-500/10',
       border: 'border-indigo-500/20',
-      icon: 'from-indigo-500 to-indigo-600',
-      text: 'text-indigo-400',
+      iconBg: 'bg-indigo-500/20',
+      iconColor: 'text-indigo-400',
+      text: 'text-white',
     },
     green: {
-      bg: 'from-emerald-500/20 to-emerald-600/10',
+      bg: 'bg-emerald-500/10',
       border: 'border-emerald-500/20',
-      icon: 'from-emerald-500 to-emerald-600',
-      text: 'text-emerald-400',
+      iconBg: 'bg-emerald-500/20',
+      iconColor: 'text-emerald-400',
+      text: 'text-white',
     },
     red: {
-      bg: 'from-rose-500/20 to-rose-600/10',
+      bg: 'bg-rose-500/10',
       border: 'border-rose-500/20',
-      icon: 'from-rose-500 to-rose-600',
-      text: 'text-rose-400',
-    },
-    purple: {
-      bg: 'from-purple-500/20 to-purple-600/10',
-      border: 'border-purple-500/20',
-      icon: 'from-purple-500 to-purple-600',
-      text: 'text-purple-400',
-    },
+      iconBg: 'bg-rose-500/20',
+      iconColor: 'text-rose-400',
+      text: 'text-white',
+    }
   };
 
   const classes = colorClasses[color] || colorClasses.indigo;
 
   return (
-    <div className={`bg-gradient-to-br ${classes.bg} rounded-2xl p-6 border ${classes.border} 
-      hover:shadow-lg hover:shadow-${color}-500/10 transition-all duration-300`}>
+    <div className={`${classes.bg} ${classes.border} border backdrop-blur-md rounded-[2rem] p-7 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 group`}>
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-slate-400 text-sm font-medium mb-1">{title}</p>
-          <p className={`text-2xl lg:text-3xl font-bold ${classes.text}`}>
+        <div>
+          <p className="text-slate-400 text-sm font-medium mb-1 uppercase tracking-tight">{title}</p>
+          <h3 className={`text-3xl font-bold ${classes.text} tracking-tight`}>
             {formatCurrency(value)}
-          </p>
+          </h3>
           
           {trend !== undefined && (
-            <div className="flex items-center gap-1 mt-2">
-              {trend === 'up' ? (
-                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                </svg>
-              )}
-              <span className={`text-sm font-medium ${trend === 'up' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {trendValue}%
+            <div className="flex items-center gap-1.5 mt-3">
+              <span className={`flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${trend === 'up' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                {trend === 'up' ? '↑' : '↓'} {trendValue}%
               </span>
-              <span className="text-slate-500 text-sm">vs last month</span>
+              <span className="text-slate-500 text-xs font-medium">vs last month</span>
             </div>
           )}
         </div>
         
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${classes.icon} flex items-center justify-center shadow-lg`}>
+        <div className={`${classes.iconBg} ${classes.iconColor} w-14 h-14 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300`}>
           {icon}
         </div>
       </div>
