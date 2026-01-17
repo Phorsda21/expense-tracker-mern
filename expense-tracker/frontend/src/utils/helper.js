@@ -70,6 +70,12 @@ export const API = {
   addExpense: (data) => axiosInstance.post('/api/expense', data),
   deleteExpense: (id) => axiosInstance.delete(`/api/expense/${id}`),
   downloadExpenseExcel: () => downloadFile('/api/expense/download/excel', 'expense_report.xlsx'),
+
+  // Custom Currencies
+  addCurrency: (data) => axiosInstance.post('/api/currency', data),
+  getCurrencies: () => axiosInstance.get('/api/currency'),
+  deleteCurrency: (id) => axiosInstance.delete(`/api/currency/${id}`),
+  updateCurrency: (id, data) => axiosInstance.put(`/api/currency/${id}`, data),
 };
 
 // Income emojis

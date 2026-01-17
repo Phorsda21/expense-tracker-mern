@@ -9,6 +9,7 @@ import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Income from './pages/Income/Income';
 import Expense from './pages/Expense/Expense';
+import Currency from './pages/Currency/Currency';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/income" element={<Income />} />
               <Route path="/expense" element={<Expense />} />
+              <Route path="/currency" element={<Currency />} />
             </Route>
 
             {/* Default redirect */}

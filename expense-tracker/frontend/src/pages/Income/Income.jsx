@@ -7,17 +7,20 @@ import { toast } from 'react-toastify';
 
 const Income = () => {
   const [incomes, setIncomes] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     icon: '💰',
     source: '',
     amount: '',
-    date: getTodayDate()
+    date: getTodayDate(),
+    currency: 'USD'
   });
 
   useEffect(() => {
     fetchIncomes();
+    fetchCurrencies();
   }, []);
 
   const fetchIncomes = async () => {
@@ -29,6 +32,15 @@ const Income = () => {
       toast.error('Failed to load income data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCurrencies = async () => {
+    try {
+      const response = await API.getCurrencies();
+      setCurrencies(response.data);
+    } catch (error) {
+      console.error('Fetch currency error:', error);
     }
   };
 
@@ -46,16 +58,27 @@ const Income = () => {
 
     setSubmitting(true);
     try {
+      let finalAmount = parseFloat(formData.amount);
+
+      // Convert if custom currency is selected
+      if (formData.currency !== 'USD') {
+        const selectedCurrency = currencies.find(c => c._id === formData.currency);
+        if (selectedCurrency) {
+          finalAmount = finalAmount / selectedCurrency.rate;
+        }
+      }
+
       await API.addIncome({
         ...formData,
-        amount: parseFloat(formData.amount)
+        amount: finalAmount
       });
       toast.success('Income added successfully!');
       setFormData({
         icon: '💰',
         source: '',
         amount: '',
-        date: getTodayDate()
+        date: getTodayDate(),
+        currency: 'USD'
       });
       fetchIncomes();
     } catch (error) {
@@ -131,6 +154,13 @@ const Income = () => {
     );
   }
 
+  // Helper to get currency symbol or name
+  const getCurrencyLabel = () => {
+    if (formData.currency === 'USD') return '$';
+    const curr = currencies.find(c => c._id === formData.currency);
+    return curr ? curr.name : '$';
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Page Header */}
@@ -196,11 +226,31 @@ const Income = () => {
               />
             </div>
 
+            {/* Currency Selection */}
+            <div>
+              <label className="block text-slate-400 text-sm font-medium mb-2">Currency</label>
+              <select
+                value={formData.currency}
+                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white 
+                  focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none"
+              >
+                <option value="USD">USD ($)</option>
+                {currencies.map(c => (
+                  <option key={c._id} value={c._id}>
+                    {c.name} (Rate: {c.rate})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Amount Input */}
             <div>
               <label className="block text-slate-400 text-sm font-medium mb-2">Amount</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">
+                  {formData.currency === 'USD' ? '$' : ''}
+                </span>
                 <input
                   type="number"
                   value={formData.amount}
@@ -208,10 +258,15 @@ const Income = () => {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white 
-                    placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  className={`w-full ${formData.currency === 'USD' ? 'pl-10' : 'pl-4'} pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white 
+                    placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all`}
                 />
               </div>
+              {formData.currency !== 'USD' && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Will be converted to USD: {formatCurrency(formData.amount / (currencies.find(c => c._id === formData.currency)?.rate || 1))}
+                </p>
+              )}
             </div>
 
             {/* Date Input */}

@@ -7,17 +7,20 @@ import { toast } from 'react-toastify';
 
 const Expense = () => {
   const [expenses, setExpenses] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     icon: '🛒',
     category: '',
     amount: '',
-    date: getTodayDate()
+    date: getTodayDate(),
+    currency: 'USD'
   });
 
   useEffect(() => {
     fetchExpenses();
+    fetchCurrencies();
   }, []);
 
   const fetchExpenses = async () => {
@@ -32,9 +35,18 @@ const Expense = () => {
     }
   };
 
+  const fetchCurrencies = async () => {
+    try {
+      const response = await API.getCurrencies();
+      setCurrencies(response.data);
+    } catch (error) {
+      console.error('Fetch currency error:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.category.trim()) {
       toast.error('Please enter expense category');
       return;
@@ -46,16 +58,27 @@ const Expense = () => {
 
     setSubmitting(true);
     try {
+      let finalAmount = parseFloat(formData.amount);
+
+      // Convert if custom currency is selected
+      if (formData.currency !== 'USD') {
+        const selectedCurrency = currencies.find(c => c._id === formData.currency);
+        if (selectedCurrency) {
+          finalAmount = finalAmount / selectedCurrency.rate;
+        }
+      }
+
       await API.addExpense({
         ...formData,
-        amount: parseFloat(formData.amount)
+        amount: finalAmount
       });
       toast.success('Expense added successfully!');
       setFormData({
         icon: '🛒',
         category: '',
         amount: '',
-        date: getTodayDate()
+        date: getTodayDate(),
+        currency: 'USD'
       });
       fetchExpenses();
     } catch (error) {
@@ -67,7 +90,7 @@ const Expense = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
-    
+
     try {
       await API.deleteExpense(id);
       toast.success('Expense deleted');
@@ -170,7 +193,7 @@ const Expense = () => {
         {/* Add Expense Form */}
         <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
           <h3 className="text-lg font-semibold text-white mb-6">Add New Expense</h3>
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Emoji Picker */}
             <div>
@@ -195,11 +218,31 @@ const Expense = () => {
               />
             </div>
 
+            {/* Currency Selection */}
+            <div>
+              <label className="block text-slate-400 text-sm font-medium mb-2">Currency</label>
+              <select
+                value={formData.currency}
+                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white 
+                  focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all appearance-none"
+              >
+                <option value="USD">USD ($)</option>
+                {currencies.map(c => (
+                  <option key={c._id} value={c._id}>
+                    {c.name} (Rate: {c.rate})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Amount Input */}
             <div>
               <label className="block text-slate-400 text-sm font-medium mb-2">Amount</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">
+                  {formData.currency === 'USD' ? '$' : ''}
+                </span>
                 <input
                   type="number"
                   value={formData.amount}
@@ -207,10 +250,15 @@ const Expense = () => {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white 
-                    placeholder-slate-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all"
+                  className={`w-full ${formData.currency === 'USD' ? 'pl-10' : 'pl-4'} pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white 
+                    placeholder-slate-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all`}
                 />
               </div>
+              {formData.currency !== 'USD' && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Will be converted to USD: {formatCurrency(formData.amount / (currencies.find(c => c._id === formData.currency)?.rate || 1))}
+                </p>
+              )}
             </div>
 
             {/* Date Input */}
@@ -271,7 +319,7 @@ const Expense = () => {
         <div className="p-4 border-b border-slate-700/50">
           <h3 className="text-lg font-semibold text-white">Expense History</h3>
         </div>
-        
+
         {expenses.length > 0 ? (
           <div className="divide-y divide-slate-700/50">
             {expenses.map((expense) => (

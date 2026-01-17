@@ -24,6 +24,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/income', require('./routes/incomeRoutes'));
 app.use('/api/expense', require('./routes/expenseRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/currency', require('./routes/currencyRoutes'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
@@ -32,7 +33,7 @@ app.get('/api/health', (req, res) => {
 
 // Root route
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Welcome to Expense Tracker API',
     version: '1.0.0',
     endpoints: {
@@ -47,7 +48,7 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
