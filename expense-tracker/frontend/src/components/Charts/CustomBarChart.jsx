@@ -8,6 +8,16 @@ const CustomBarChart = ({ data, title, dataKey = 'amount', color = '#6366f1' }) 
         <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl">
           <p className="text-slate-400 text-sm mb-1">{label}</p>
           <p className="text-white font-semibold">{formatCurrency(payload[0].value)}</p>
+          {payload[0].payload.incomeSources && payload[0].payload.incomeSources.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-slate-700">
+              {payload[0].payload.incomeSources.map((item, index) => (
+                <div key={index} className="text-xs text-slate-300 flex justify-between gap-4">
+                  <span>{item.source}</span>
+                  <span className="font-medium text-slate-400">{formatCurrency(item.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       );
     }
@@ -38,22 +48,22 @@ const CustomBarChart = ({ data, title, dataKey = 'amount', color = '#6366f1' }) 
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-            <XAxis 
-              dataKey="name" 
-              stroke="#64748b" 
+            <XAxis
+              dataKey="name"
+              stroke="#64748b"
               tick={{ fill: '#94a3b8', fontSize: 12 }}
               axisLine={{ stroke: '#334155' }}
               tickLine={false}
             />
-            <YAxis 
-              stroke="#64748b" 
+            <YAxis
+              stroke="#64748b"
               tick={{ fill: '#94a3b8', fontSize: 12 }}
               axisLine={{ stroke: '#334155' }}
               tickLine={false}
               tickFormatter={(value) => `$${value}`}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-            <Bar 
+            <Bar
               dataKey={dataKey}
               fill={`url(#barGradient-${color.replace('#', '')})`}
               radius={[6, 6, 0, 0]}

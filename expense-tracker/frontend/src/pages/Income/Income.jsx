@@ -34,7 +34,7 @@ const Income = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.source.trim()) {
       toast.error('Please enter income source');
       return;
@@ -67,7 +67,7 @@ const Income = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this income?')) return;
-    
+
     try {
       await API.deleteIncome(id);
       toast.success('Income deleted');
@@ -91,18 +91,37 @@ const Income = () => {
 
   // Prepare chart data
   const incomeBySource = {};
+  const incomeByDate = {}; // Group by date
+
   incomes.forEach(income => {
+    // By Source
     if (!incomeBySource[income.source]) {
       incomeBySource[income.source] = 0;
     }
     incomeBySource[income.source] += income.amount;
+
+    // By Date
+    const dateKey = new Date(income.date).toISOString().split('T')[0];
+    if (!incomeByDate[dateKey]) {
+      incomeByDate[dateKey] = { amount: 0, sources: [] };
+    }
+    incomeByDate[dateKey].amount += income.amount;
+    incomeByDate[dateKey].sources.push({ source: income.source, amount: income.amount });
   });
 
-  const chartData = Object.entries(incomeBySource).map(([source, amount]) => ({
+  const sourceChartData = Object.entries(incomeBySource).map(([source, amount]) => ({
     name: source,
     amount,
     percentage: totalIncome > 0 ? ((amount / totalIncome) * 100).toFixed(1) : 0
   })).sort((a, b) => b.amount - a.amount);
+
+  const dateChartData = Object.entries(incomeByDate)
+    .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+    .map(([date, data]) => ({
+      name: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      amount: data.amount,
+      incomeSources: data.sources // Pass sources to chart data
+    }));
 
   if (loading) {
     return (
@@ -152,7 +171,7 @@ const Income = () => {
         {/* Add Income Form */}
         <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
           <h3 className="text-lg font-semibold text-white mb-6">Add New Income</h3>
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Emoji Picker */}
             <div>
@@ -235,7 +254,7 @@ const Income = () => {
         {/* Charts */}
         <div className="space-y-6">
           <CustomPieChart
-            data={chartData}
+            data={sourceChartData}
             title="Income Distribution"
             dataKey="amount"
             nameKey="name"
@@ -245,8 +264,8 @@ const Income = () => {
 
       {/* Bar Chart */}
       <CustomBarChart
-        data={chartData.slice(0, 6)}
-        title="Income by Source"
+        data={dateChartData.slice(-6)}
+        title="Income History"
         dataKey="amount"
         color="#10b981"
       />
@@ -256,7 +275,7 @@ const Income = () => {
         <div className="p-4 border-b border-slate-700/50">
           <h3 className="text-lg font-semibold text-white">Income History</h3>
         </div>
-        
+
         {incomes.length > 0 ? (
           <div className="divide-y divide-slate-700/50">
             {incomes.map((income) => (

@@ -90,7 +90,7 @@ const Dashboard = () => {
             ]}
           />
         </div>
-        
+
         <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm">
           <CustomPieChart
             data={expenseByCategory}
@@ -105,10 +105,10 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm">
           <CustomBarChart
-            data={incomeBySource.slice(0, 6)}
-            title="Top Income Sources"
-            dataKey="amount"
-            color="#818cf8" 
+            data={dashboardData?.chartData?.slice(-7) || []}
+            title="Income History"
+            dataKey="income"
+            color="#818cf8"
           />
         </div>
         <div className="bg-white/5 border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-sm">

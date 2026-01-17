@@ -39,9 +39,11 @@ const getDashboardStats = async (req, res) => {
     recentIncome.forEach(item => {
       const dateKey = new Date(item.date).toISOString().split('T')[0];
       if (!chartDataMap.has(dateKey)) {
-        chartDataMap.set(dateKey, { date: dateKey, income: 0, expense: 0 });
+        chartDataMap.set(dateKey, { date: dateKey, income: 0, expense: 0, incomeSources: [] });
       }
-      chartDataMap.get(dateKey).income += item.amount;
+      const dayData = chartDataMap.get(dateKey);
+      dayData.income += item.amount;
+      dayData.incomeSources.push({ source: item.source, amount: item.amount });
     });
 
     recentExpenses.forEach(item => {
@@ -53,16 +55,20 @@ const getDashboardStats = async (req, res) => {
     });
 
     // Convert to array and sort by date
-    const chartData = Array.from(chartDataMap.values()).sort((a, b) => 
+    const chartData = Array.from(chartDataMap.values()).sort((a, b) =>
       new Date(a.date) - new Date(b.date)
     );
 
     // Format chart data for display
     const formattedChartData = chartData.map(item => ({
       ...item,
-      date: new Date(item.date).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
+      date: new Date(item.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      }),
+      name: new Date(item.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
       })
     }));
 
