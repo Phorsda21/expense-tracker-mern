@@ -57,7 +57,12 @@ export const API = {
   getProfile: () => axiosInstance.get('/api/auth/profile'),
 
   // Dashboard
-  getDashboard: () => axiosInstance.get('/api/dashboard'),
+  getDashboard: (year, month) => {
+    let query = '';
+    if (year) query += `?year=${year}`;
+    if (month) query += year ? `&month=${month}` : `?month=${month}`;
+    return axiosInstance.get(`/api/dashboard${query}`);
+  },
 
   // Income
   getAllIncome: () => axiosInstance.get('/api/income'),

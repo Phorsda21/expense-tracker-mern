@@ -17,6 +17,8 @@ const Expense = () => {
     date: getTodayDate(),
     currency: 'USD'
   });
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
 
   useEffect(() => {
     fetchExpenses();
@@ -109,12 +111,25 @@ const Expense = () => {
     }
   };
 
+  // Filter Logic
+  const availableYears = [...new Set(expenses.map(item => new Date(item.date).getFullYear()))].sort((a, b) => b - a);
+
+  const filteredExpenses = expenses.filter(item => {
+    const itemDate = new Date(item.date);
+    const itemYear = itemDate.getFullYear();
+    const itemMonth = itemDate.getMonth() + 1;
+
+    if (selectedYear && itemYear !== parseInt(selectedYear)) return false;
+    if (selectedYear && selectedMonth && itemMonth !== parseInt(selectedMonth)) return false;
+    return true;
+  });
+
   // Calculate totals
-  const totalExpense = expenses.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpense = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
 
   // Prepare pie chart data - by category
   const expenseByCategory = {};
-  expenses.forEach(expense => {
+  filteredExpenses.forEach(expense => {
     if (!expenseByCategory[expense.category]) {
       expenseByCategory[expense.category] = 0;
     }
@@ -129,7 +144,7 @@ const Expense = () => {
 
   // Prepare line chart data - by date
   const expenseByDate = {};
-  expenses.forEach(expense => {
+  filteredExpenses.forEach(expense => {
     const dateKey = new Date(expense.date).toISOString().split('T')[0];
     if (!expenseByDate[dateKey]) {
       expenseByDate[dateKey] = 0;
@@ -139,7 +154,7 @@ const Expense = () => {
 
   const lineChartData = Object.entries(expenseByDate)
     .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-    .slice(-30)
+    .slice(-selectedYear ? undefined : 30)
     .map(([date, amount]) => ({
       date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       amount
@@ -156,22 +171,53 @@ const Expense = () => {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Expenses</h1>
           <p className="text-slate-400">Track your spending</p>
         </div>
-        <button
-          onClick={handleDownload}
-          disabled={expenses.length === 0}
-          className="flex items-center gap-2 px-4 py-2.5 bg-slate-700/50 text-slate-300 rounded-xl 
-            hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download Excel
-        </button>
+
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(e.target.value);
+              if (!e.target.value) setSelectedMonth('');
+            }}
+            className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-rose-500 transition-colors"
+          >
+            <option value="">All Time</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            disabled={!selectedYear}
+            className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:border-rose-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">All Months</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+              <option key={month} value={month}>
+                {new Date(0, month - 1).toLocaleString('default', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={handleDownload}
+            disabled={expenses.length === 0}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-700/50 text-slate-300 rounded-xl 
+                hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download Excel
+          </button>
+        </div>
       </div>
 
       {/* Total Expense Card */}
@@ -320,9 +366,9 @@ const Expense = () => {
           <h3 className="text-lg font-semibold text-white">Expense History</h3>
         </div>
 
-        {expenses.length > 0 ? (
+        {filteredExpenses.length > 0 ? (
           <div className="divide-y divide-slate-700/50">
-            {expenses.map((expense) => (
+            {filteredExpenses.map((expense) => (
               <div
                 key={expense._id}
                 className="flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors"
