@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { API, formatCurrency } from '../../utils/helper';
+import DeleteModal from '../../components/DeleteModal';
 import { toast } from 'react-toastify';
 
 const Currency = () => {
@@ -72,13 +73,21 @@ const Currency = () => {
         setEditingId(currency._id);
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this currency?')) return;
+    const [deleteModal, setDeleteModal] = useState({
+        show: false,
+        id: null
+    });
 
+    const handleDeleteClick = (id) => {
+        setDeleteModal({ show: true, id });
+    };
+
+    const confirmDelete = async () => {
         try {
-            await API.deleteCurrency(id);
+            await API.deleteCurrency(deleteModal.id);
             toast.success('Currency deleted');
             fetchCurrencies();
+            setDeleteModal({ show: false, id: null });
         } catch (error) {
             toast.error('Failed to delete currency');
         }
@@ -207,7 +216,7 @@ const Currency = () => {
                                             </svg>
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(currency._id)}
+                                            onClick={() => handleDeleteClick(currency._id)}
                                             className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,6 +239,14 @@ const Currency = () => {
                         </div>
                     )}
                 </div>
+
+                <DeleteModal
+                    isOpen={deleteModal.show}
+                    onClose={() => setDeleteModal({ show: false, id: null })}
+                    onConfirm={confirmDelete}
+                    title="Delete Currency"
+                    message="Are you sure you want to delete this currency? This might affect transactions using it."
+                />
             </div>
         </div>
     );

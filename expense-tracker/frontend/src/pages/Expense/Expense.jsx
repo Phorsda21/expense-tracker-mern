@@ -3,6 +3,7 @@ import { API, EXPENSE_EMOJIS, formatCurrency, formatDate, getTodayDate } from '.
 import EmojiPicker from '../../components/EmojiPicker';
 import CustomLineChart from '../../components/Charts/CustomLineChart';
 import CustomPieChart from '../../components/Charts/CustomPieChart';
+import DeleteModal from '../../components/DeleteModal';
 import { toast } from 'react-toastify';
 
 const Expense = () => {
@@ -90,13 +91,21 @@ const Expense = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this expense?')) return;
+  const [deleteModal, setDeleteModal] = useState({
+    show: false,
+    id: null
+  });
 
+  const handleDeleteClick = (id) => {
+    setDeleteModal({ show: true, id });
+  };
+
+  const confirmDelete = async () => {
     try {
-      await API.deleteExpense(id);
+      await API.deleteExpense(deleteModal.id);
       toast.success('Expense deleted');
       fetchExpenses();
+      setDeleteModal({ show: false, id: null });
     } catch (error) {
       toast.error('Failed to delete expense');
     }
@@ -387,7 +396,7 @@ const Expense = () => {
                     -{formatCurrency(expense.amount)}
                   </p>
                   <button
-                    onClick={() => handleDelete(expense._id)}
+                    onClick={() => handleDeleteClick(expense._id)}
                     className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,6 +419,14 @@ const Expense = () => {
           </div>
         )}
       </div>
+
+      <DeleteModal
+        isOpen={deleteModal.show}
+        onClose={() => setDeleteModal({ show: false, id: null })}
+        onConfirm={confirmDelete}
+        title="Delete Expense"
+        message="Are you sure you want to delete this expense record? This action cannot be undone."
+      />
     </div>
   );
 };
