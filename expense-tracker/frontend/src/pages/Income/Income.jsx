@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API, INCOME_EMOJIS, formatCurrency, formatDate, getTodayDate } from '../../utils/helper';
+import { API, INCOME_EMOJIS, formatCurrency, formatDate, getTodayDate, formatDateForInput } from '../../utils/helper';
 import EmojiPicker from '../../components/EmojiPicker';
 import CustomBarChart from '../../components/Charts/CustomBarChart';
 import CustomPieChart from '../../components/Charts/CustomPieChart';
@@ -20,6 +20,8 @@ const Income = () => {
   });
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => {
     fetchIncomes();
@@ -71,11 +73,22 @@ const Income = () => {
         }
       }
 
-      await API.addIncome({
-        ...formData,
-        amount: finalAmount
-      });
-      toast.success('Income added successfully!');
+      if (editMode) {
+        await API.updateIncome(editId, {
+          ...formData,
+          amount: finalAmount
+        });
+        toast.success('Income updated successfully!');
+        setEditMode(false);
+        setEditId(null);
+      } else {
+        await API.addIncome({
+          ...formData,
+          amount: finalAmount
+        });
+        toast.success('Income added successfully!');
+      }
+
       setFormData({
         icon: '💰',
         source: '',
@@ -85,10 +98,36 @@ const Income = () => {
       });
       fetchIncomes();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add income');
+      toast.error(error.response?.data?.message || (editMode ? 'Failed to update income' : 'Failed to add income'));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (item) => {
+    setEditMode(true);
+    setEditId(item._id);
+    setFormData({
+      icon: item.icon,
+      source: item.source,
+      amount: item.amount,
+      date: formatDateForInput(item.date),
+      currency: 'USD' // Reset to USD as amount is stored in USD
+    });
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    setEditId(null);
+    setFormData({
+      icon: '💰',
+      source: '',
+      amount: '',
+      date: getTodayDate(),
+      currency: 'USD'
+    });
   };
 
   const [deleteModal, setDeleteModal] = useState({
@@ -253,9 +292,21 @@ const Income = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Add Income Form */}
+        {/* Add/Edit Income Form */}
         <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
-          <h3 className="text-lg font-semibold text-white mb-6">Add New Income</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-white">
+              {editMode ? 'Edit Income' : 'Add New Income'}
+            </h3>
+            {editMode && (
+              <button
+                onClick={cancelEdit}
+                className="text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Emoji Picker */}
@@ -358,6 +409,16 @@ const Income = () => {
                 </>
               )}
             </button>
+            {editMode && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="w-full py-3.5 bg-slate-700 text-slate-300 font-semibold 
+                  rounded-xl hover:bg-slate-600 transition-all"
+              >
+                Cancel
+              </button>
+            )}
           </form>
         </div>
 
@@ -412,6 +473,14 @@ const Income = () => {
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleEdit(income)}
+                    className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
                 </div>

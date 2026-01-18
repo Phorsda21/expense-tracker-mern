@@ -68,12 +68,14 @@ export const API = {
   getAllIncome: () => axiosInstance.get('/api/income'),
   addIncome: (data) => axiosInstance.post('/api/income', data),
   deleteIncome: (id) => axiosInstance.delete(`/api/income/${id}`),
+  updateIncome: (id, data) => axiosInstance.put(`/api/income/${id}`, data),
   downloadIncomeExcel: () => downloadFile('/api/income/download/excel', 'income_report.xlsx'),
 
   // Expense
   getAllExpenses: () => axiosInstance.get('/api/expense'),
   addExpense: (data) => axiosInstance.post('/api/expense', data),
   deleteExpense: (id) => axiosInstance.delete(`/api/expense/${id}`),
+  updateExpense: (id, data) => axiosInstance.put(`/api/expense/${id}`, data),
   downloadExpenseExcel: () => downloadFile('/api/expense/download/excel', 'expense_report.xlsx'),
 
   // Custom Currencies
