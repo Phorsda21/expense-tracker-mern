@@ -25,6 +25,7 @@ app.use('/api/income', require('./routes/incomeRoutes'));
 app.use('/api/expense', require('./routes/expenseRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/currency', require('./routes/currencyRoutes'));
+app.use('/api/receipt', require('./routes/receiptRoutes'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
@@ -40,7 +41,8 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       income: '/api/income',
       expense: '/api/expense',
-      dashboard: '/api/dashboard'
+      dashboard: '/api/dashboard',
+      receipt: '/api/receipt'
     }
   });
 });

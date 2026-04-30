@@ -83,6 +83,14 @@ export const API = {
   getCurrencies: () => axiosInstance.get('/api/currency'),
   deleteCurrency: (id) => axiosInstance.delete(`/api/currency/${id}`),
   updateCurrency: (id, data) => axiosInstance.put(`/api/currency/${id}`, data),
+
+  // Receipt Scanning
+  scanReceipt: (formData) => axiosInstance.post('/api/receipt/scan', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 30000, // Increased timeout to 30 seconds for AI processing
+  }),
 };
 
 // Income emojis

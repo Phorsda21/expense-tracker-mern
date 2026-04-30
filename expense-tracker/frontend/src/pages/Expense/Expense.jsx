@@ -11,6 +11,7 @@ const Expense = () => {
   const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [formData, setFormData] = useState({
     icon: '🛒',
     category: '',
@@ -159,6 +160,37 @@ const Expense = () => {
     }
   };
 
+  const handleScanReceipt = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    const toastId = toast.loading('AI is reading your receipt...');
+    
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('receipt', file);
+      
+      const response = await API.scanReceipt(formDataToSend);
+      const { category, amount, date } = response.data.data;
+      
+      setFormData(prev => ({
+        ...prev,
+        category: category || prev.category,
+        amount: amount ? String(amount) : prev.amount,
+        date: date || prev.date
+      }));
+
+      toast.update(toastId, { render: 'Receipt scanned successfully!', type: 'success', isLoading: false, autoClose: 3000 });
+    } catch (error) {
+      console.error('Scan error:', error);
+      toast.update(toastId, { render: error.response?.data?.message || 'Failed to scan receipt. Is your Gemini API key valid?', type: 'error', isLoading: false, autoClose: 5000 });
+    } finally {
+      setIsScanning(false);
+      e.target.value = null; // reset input
+    }
+  };
+
   // Filter Logic
   const availableYears = [...new Set(expenses.map(item => new Date(item.date).getFullYear()))].sort((a, b) => b - a);
 
@@ -301,6 +333,45 @@ const Expense = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* AI Receipt Scanner */}
+            {!editMode && (
+              <div className="flex items-center justify-between p-4 bg-rose-500/5 rounded-xl border border-rose-500/20">
+                <div>
+                  <h4 className="text-sm font-medium text-rose-400">Magic Scan</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Auto-fill using AI</p>
+                </div>
+                <div>
+                  <input 
+                    type="file" 
+                    id="receipt-upload" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleScanReceipt}
+                    disabled={isScanning || submitting}
+                  />
+                  <label 
+                    htmlFor="receipt-upload"
+                    className={`flex items-center gap-2 px-4 py-2 ${isScanning || submitting ? 'bg-slate-700 cursor-not-allowed text-slate-500' : 'bg-rose-500 text-white hover:bg-rose-600 cursor-pointer shadow-lg shadow-rose-500/25'} rounded-lg transition-all text-sm font-medium`}
+                  >
+                    {isScanning ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Scanning...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Upload Image
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+            )}
+
             {/* Emoji Picker */}
             <div>
               <label className="block text-slate-400 text-sm font-medium mb-3">Select Icon</label>
