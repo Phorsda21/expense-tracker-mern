@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API, INCOME_EMOJIS, formatCurrency, formatDate, getTodayDate, formatDateForInput } from '../../utils/helper';
+import { API, formatCurrency, formatDate, getTodayDate, formatDateForInput } from '../../utils/helper';
 import EmojiPicker from '../../components/EmojiPicker';
 import CustomBarChart from '../../components/Charts/CustomBarChart';
 import CustomPieChart from '../../components/Charts/CustomPieChart';
@@ -313,7 +313,6 @@ const Income = () => {
             <div>
               <label className="block text-slate-400 text-sm font-medium mb-3">Select Icon</label>
               <EmojiPicker
-                emojis={INCOME_EMOJIS}
                 selectedEmoji={formData.icon}
                 onSelect={(emoji) => setFormData({ ...formData, icon: emoji })}
               />
