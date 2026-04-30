@@ -91,6 +91,15 @@ export const API = {
     },
     timeout: 30000, // Increased timeout to 30 seconds for AI processing
   }),
+
+  // Bank Statement Import
+  parseStatement: (formData) => axiosInstance.post('/api/statement/parse', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 60000, // 60 seconds for large PDFs
+  }),
+  importTransactions: (data) => axiosInstance.post('/api/statement/import', data),
 };
 
 // Income emojis

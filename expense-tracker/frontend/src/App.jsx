@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Income from './pages/Income/Income';
 import Expense from './pages/Expense/Expense';
 import Currency from './pages/Currency/Currency';
+import ImportStatement from './pages/ImportStatement/ImportStatement';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/income" element={<Income />} />
               <Route path="/expense" element={<Expense />} />
               <Route path="/currency" element={<Currency />} />
+              <Route path="/import-statement" element={<ImportStatement />} />
             </Route>
 
             {/* Default redirect */}
