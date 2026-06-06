@@ -41,9 +41,9 @@ const CustomPieChart = ({ data, title, dataKey = 'amount', nameKey = 'name' }) =
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+      <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50 h-full">
         <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
-        <div className="h-64 flex items-center justify-center text-slate-500">
+        <div className="h-[350px] flex items-center justify-center text-slate-500">
           No data available
         </div>
       </div>
@@ -51,9 +51,9 @@ const CustomPieChart = ({ data, title, dataKey = 'amount', nameKey = 'name' }) =
   }
 
   return (
-    <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+    <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50 h-full">
       <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
-      <div className="h-64">
+      <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -61,9 +61,9 @@ const CustomPieChart = ({ data, title, dataKey = 'amount', nameKey = 'name' }) =
               dataKey={dataKey}
               nameKey={nameKey}
               cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={90}
+              cy="55%"
+              innerRadius={80}
+              outerRadius={140}
               paddingAngle={2}
               labelLine={false}
               label={renderCustomizedLabel}
@@ -82,8 +82,8 @@ const CustomPieChart = ({ data, title, dataKey = 'amount', nameKey = 'name' }) =
       </div>
       
       {/* Legend */}
-      <div className="mt-4 grid grid-cols-2 gap-2 max-h-24 overflow-y-auto">
-        {data.slice(0, 6).map((item, index) => (
+      <div className="mt-4 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+        {data.map((item, index) => (
           <div key={index} className="flex items-center gap-2 text-sm">
             <div 
               className="w-3 h-3 rounded-full flex-shrink-0"

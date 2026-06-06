@@ -97,10 +97,12 @@ const getDashboardStats = async (req, res) => {
     const formattedChartData = chartData.map(item => ({
       ...item,
       date: new Date(item.date).toLocaleDateString('en-US', {
+        year: 'numeric',
         month: 'short',
         day: 'numeric'
       }),
       name: new Date(item.date).toLocaleDateString('en-US', {
+        year: 'numeric',
         month: 'short',
         day: 'numeric'
       })

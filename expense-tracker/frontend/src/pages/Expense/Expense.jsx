@@ -3,7 +3,7 @@ import { API, formatCurrency, formatDate, getTodayDate, formatDateForInput } fro
 import EmojiPicker from '../../components/EmojiPicker';
 import CustomLineChart from '../../components/Charts/CustomLineChart';
 import CustomPieChart from '../../components/Charts/CustomPieChart';
-import DeleteModal from '../../components/DeleteModal';
+
 import { toast } from 'react-toastify';
 
 const Expense = () => {
@@ -131,21 +131,14 @@ const Expense = () => {
     });
   };
 
-  const [deleteModal, setDeleteModal] = useState({
-    show: false,
-    id: null
-  });
+  const [confirmingId, setConfirmingId] = useState(null);
 
-  const handleDeleteClick = (id) => {
-    setDeleteModal({ show: true, id });
-  };
-
-  const confirmDelete = async () => {
+  const confirmDelete = async (id) => {
     try {
-      await API.deleteExpense(deleteModal.id);
+      await API.deleteExpense(id);
       toast.success('Expense deleted');
       fetchExpenses();
-      setDeleteModal({ show: false, id: null });
+      setConfirmingId(null);
     } catch (error) {
       toast.error('Failed to delete expense');
     }
@@ -234,9 +227,9 @@ const Expense = () => {
 
   const lineChartData = Object.entries(expenseByDate)
     .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-    .slice(-selectedYear ? undefined : 30)
+    .slice(selectedYear ? 0 : -30)
     .map(([date, amount]) => ({
-      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
       amount
     }));
 
@@ -496,7 +489,7 @@ const Expense = () => {
       {/* Line Chart */}
       <CustomLineChart
         data={lineChartData}
-        title="Expense Trend (Last 30 Days)"
+        title="Expense Trend"
         lines={[{ dataKey: 'amount', color: '#ef4444', name: 'Expense' }]}
       />
 
@@ -522,26 +515,53 @@ const Expense = () => {
                     <p className="text-slate-500 text-sm">{formatDate(expense.date)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <p className="text-rose-400 font-semibold text-lg">
-                    -{formatCurrency(expense.amount)}
-                  </p>
-                  <button
-                    onClick={() => handleDeleteClick(expense._id)}
-                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleEdit(expense)}
-                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
+                <div className="flex items-center gap-3">
+                  {confirmingId === expense._id ? (
+                    /* ── Inline confirmation strip ── */
+                    <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/25 rounded-xl px-3 py-1.5 animate-fadeIn">
+                      <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z" />
+                      </svg>
+                      <span className="text-rose-300 text-xs font-medium whitespace-nowrap">Delete this?</span>
+                      <button
+                        onClick={() => setConfirmingId(null)}
+                        className="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(expense._id)}
+                        className="px-2.5 py-1 text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors shadow-sm shadow-rose-500/30"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : (
+                    /* ── Normal action buttons ── */
+                    <>
+                      <p className="text-rose-400 font-semibold text-lg">
+                        -{formatCurrency(expense.amount)}
+                      </p>
+                      <button
+                        onClick={() => setConfirmingId(expense._id)}
+                        className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                        title="Delete"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleEdit(expense)}
+                        className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                        title="Edit"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -559,13 +579,7 @@ const Expense = () => {
         )}
       </div>
 
-      <DeleteModal
-        isOpen={deleteModal.show}
-        onClose={() => setDeleteModal({ show: false, id: null })}
-        onConfirm={confirmDelete}
-        title="Delete Expense"
-        message="Are you sure you want to delete this expense record? This action cannot be undone."
-      />
+
     </div>
   );
 };
